@@ -55,7 +55,3 @@ Notes
 - If ASCIIArt.txt is not found, the program skips ASCII art display.
 - The chatbot provides fixed responses based on exact user inputs.
 - This project is intended for educational purposes to raise awareness of cybersecurity.
-
----
-
-Let me know if you want this saved as a `.txt` file directly or need anything else added to it.
