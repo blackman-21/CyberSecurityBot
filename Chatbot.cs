@@ -1,73 +1,183 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Threading;
 
 public class Chatbot
 {
-    public void StartChat(string userName)
+    private Dictionary<string, List<string>> topicResponses;
+    private Dictionary<string, Action> staticResponses;
+    private string userName;
+    private string userInterest = "";
+
+    public Chatbot()
     {
-        Console.WriteLine($"\nHow can I help you today?");
-        Console.WriteLine("You can ask me about: ");
-        Console.WriteLine("I. how are you");
-        Console.WriteLine("II. what is you purpose");
-        Console.WriteLine("III. password safety");
-        Console.WriteLine("IV. phishing");
-        Console.WriteLine("V. safe browsing");
-        Console.WriteLine("VI. exit");
+        topicResponses = new Dictionary<string, List<string>>
+        {
+            { "phishing", new List<string>
+                {
+                    "Be cautious of emails asking for personal information. Scammers often disguise themselves as trusted organisations.",
+                    "Never click on links in unsolicited messages. Always check the sender's email.",
+                    "Look out for poor grammar or urgent language in emails – common phishing signs.",
+                    "Enable spam filters and verify sites before entering sensitive info."
+                }
+            },
+            { "password", new List<string>
+                {
+                    "Use strong, unique passwords for each account.",
+                    "Avoid personal details like names or birthdates.",
+                    "Enable two-factor authentication (2FA) wherever possible.",
+                    "Use a password manager to store complex passwords securely.",
+                    "Change passwords regularly and don’t reuse them across sites."
+                }
+            },
+            { "privacy", new List<string>
+                {
+                    "Review app permissions regularly.",
+                    "Limit what you share on social media.",
+                    "Use browsers with tracking protection.",
+                    "Always read privacy policies to know how your data is used."
+                }
+            }
+        };
+
+        staticResponses = new Dictionary<string, Action>
+        {
+            { "how are you", () => Respond("I'm just a bot, but I'm always here to help!") },
+            { "what is your purpose", () => Respond("I help you learn about cybersecurity and staying safe online.") },
+            { "safe browsing", () => Respond(
+                "Safe browsing helps protect you from online threats.\n\n" +
+                "- Use an updated browser with security features enabled.\n" +
+                "- Avoid downloading from suspicious sites.\n" +
+                "- Look for HTTPS before entering personal info.\n" +
+                "- Use a VPN on public Wi-Fi.\n" +
+                "- Keep antivirus software up to date.") }
+        };
+    }
+
+    public void StartChat(string name)
+    {
+        userName = name;
+
+        Console.ForegroundColor = ConsoleColor.Green;
+        Console.WriteLine($"\nChatbot: How can I help you today, {userName}?");
+        Console.ResetColor();
+
+        PrintMenu();
 
         while (true)
         {
-            Console.Write("\n> ");
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.Write($"\n{userName}: ");
+            Console.ResetColor();
             string input = Console.ReadLine()?.ToLower();
 
             if (string.IsNullOrWhiteSpace(input))
             {
-                Console.WriteLine("I didn't quite understand that. Could you rephrase?");
+                Respond("I didn't quite catch that. Could you rephrase?");
                 continue;
             }
 
             if (input == "exit")
             {
-                Console.WriteLine("Goodbye! Stay safe online.");
+                Respond($"Goodbye {userName}, and remember: cybersecurity starts with awareness!");
                 break;
             }
 
-            string response = GetResponse(input);
-            Console.WriteLine(response);
+            if (DetectSentiment(input)) continue;
+            if (DetectAndRespondToTopic(input)) continue;
+
+            Respond("I'm not sure I understand. Try asking about password safety, phishing, privacy, or safe browsing.");
         }
     }
 
-    private string GetResponse(string input)
+    private void PrintMenu()
     {
-        switch (input)
+        Console.ForegroundColor = ConsoleColor.Green;
+        Console.WriteLine("\nChatbot: You can ask me about:");
+        Console.WriteLine("I. how are you");
+        Console.WriteLine("II. what is your purpose");
+        Console.WriteLine("III. password safety");
+        Console.WriteLine("IV. phishing");
+        Console.WriteLine("V. privacy");
+        Console.WriteLine("VI. safe browsing");
+        Console.WriteLine("VII. exit");
+        Console.ResetColor();
+    }
+
+    private void Respond(string message)
+    {
+        Console.ForegroundColor = ConsoleColor.Cyan;
+        Console.Write("Chatbot: ");
+        foreach (char c in message)
         {
-            case "how are you":
-                return "I'm just a bot, but I'm here to help!";
-            case "what is your purpose":
-                return "I help you learn about cybersecurity and staying safe online.";
-            case "password safety":
-                return "Password safety is crucial for protecting your online accounts.\n\n"
-                     + "- Use strong, unique passwords with at least 12 characters.\n"
-                     + "- Include uppercase and lowercase letters, numbers, and symbols.\n"
-                     + "- Avoid using birthdays, names, or common words.\n"
-                     + "- Enable two-factor authentication (2FA) for extra security.\n"
-                     + "- Use a password manager to store complex passwords securely.\n"
-                     + "- Regularly update passwords and never share them.";
-            case "phishing":
-                return "Phishing is a cyberattack where scammers try to steal your information.\n\n"
-                     + "- Be cautious of emails or messages asking for personal details.\n"
-                     + "- Verify the sender's email address before responding.\n"
-                     + "- Avoid clicking on suspicious links or downloading unknown attachments.\n"
-                     + "- Contact organizations directly if you're unsure about a request.\n"
-                     + "- Keep security software updated to detect phishing attempts.";
-            case "safe browsing":
-                return "Safe browsing helps protect you from online threats.\n\n"
-                     + "- Always use an updated web browser with security settings enabled.\n"
-                     + "- Avoid pop-ups and do not download files from unknown sites.\n"
-                     + "- Check for HTTPS in the URL before entering personal information.\n"
-                     + "- Be cautious when using public Wi-Fi; consider a VPN for extra security.\n"
-                     + "- Keep your antivirus and browser extensions up to date.";
-            default:
-                return "I didn't quite understand that. Try asking about password safety, phishing, or safe browsing.";
+            Console.Write(c);
+            Thread.Sleep(10);
+        }
+        Console.WriteLine();
+        Console.ResetColor();
+    }
+
+    private bool DetectSentiment(string input)
+    {
+        if (input.Contains("worried") || input.Contains("anxious"))
+        {
+            Respond("It's okay to feel worried—cyber threats are real, but you're doing the right thing by learning.");
+            return true;
+        }
+        else if (input.Contains("curious") || input.Contains("interested"))
+        {
+            Respond("That's great! Curiosity is the first step to awareness in cybersecurity.");
+            return true;
+        }
+        else if (input.Contains("frustrated") || input.Contains("confused"))
+        {
+            Respond("I'm here to help! Let's break it down together.");
+            return true;
+        }
+        return false;
+    }
+
+    private bool DetectAndRespondToTopic(string input)
+    {
+        foreach (var entry in staticResponses)
+        {
+            if (input.Contains(entry.Key))
+            {
+                entry.Value.Invoke();
+                return true;
+            }
         }
 
+        foreach (var topic in topicResponses.Keys)
+        {
+            if (input.Contains(topic))
+            {
+                Respond($"Here's what you should know about {topic}:");
+
+                foreach (var tip in topicResponses[topic])
+                {
+                    Respond("- " + tip);
+                    Thread.Sleep(150);
+                }
+
+                if (string.IsNullOrEmpty(userInterest))
+                {
+                    userInterest = topic;
+                    Respond($"I'll remember that you're interested in {topic}, {userName}.");
+                }
+                else if (input.Contains("more"))
+                {
+                    Respond($"You previously mentioned an interest in {userInterest}. Here's more advice:");
+                    foreach (var tip in topicResponses[userInterest])
+                    {
+                        Respond("- " + tip);
+                    }
+                }
+
+                return true;
+            }
+        }
+
+        return false;
     }
 }
