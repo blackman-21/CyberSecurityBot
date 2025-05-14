@@ -13,35 +13,59 @@ public class Chatbot
     public Chatbot()
     {
         topicResponses = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase)
-        {
-            { "phishing", new List<string>
-                {
-                    "Be cautious of emails asking for personal information. Scammers often disguise themselves as trusted organisations.",
-                    "Never click on links in unsolicited messages. Always check the sender's email.",
-                    "Look out for poor grammar or urgent language in emails – common phishing signs.",
-                    "Enable spam filters and verify sites before entering sensitive info."
-                }
-            },
-            { "password", new List<string>
-                {
-                    "Use strong, unique passwords for each account.",
-                    "Avoid personal details like names or birthdates.",
-                    "Enable two-factor authentication (2FA) wherever possible.",
-                    "Use a password manager to store complex passwords securely.",
-                    "Change passwords regularly and don’t reuse them across sites."
-                }
-            },
-            { "privacy", new List<string>
-                {
-                    "Review app permissions regularly.",
-                    "Limit what you share on social media.",
-                    "Use browsers with tracking protection.",
-                    "Always read privacy policies to know how your data is used."
-                }
+    {
+        { "phishing", new List<string>
+            {
+                "Be cautious of emails asking for personal information. Scammers often disguise themselves as trusted organisations.",
+                "Never click on links in unsolicited messages. Always check the sender's email.",
+                "Look out for poor grammar or urgent language in emails – common phishing signs.",
+                "Enable spam filters and verify sites before entering sensitive info."
             }
-        };
+        },
+        { "password", new List<string>
+            {
+                "Use strong, unique passwords for each account.",
+                "Avoid personal details like names or birthdates.",
+                "Enable two-factor authentication (2FA) wherever possible.",
+                "Use a password manager to store complex passwords securely.",
+                "Change passwords regularly and don’t reuse them across sites."
+            }
+        },
+        { "privacy", new List<string>
+            {
+                "Review app permissions regularly.",
+                "Limit what you share on social media.",
+                "Use browsers with tracking protection.",
+                "Always read privacy policies to know how your data is used."
+            }
+        },
+        { "scam", new List<string>
+            {
+                "Be skeptical of too-good-to-be-true offers online or over the phone.",
+                "Never share personal or banking details with unknown sources.",
+                "Verify the legitimacy of companies or individuals before sending money.",
+                "Report suspected scams to local authorities or consumer protection agencies.",
+                "If you feel pressured to act quickly, it's likely a scam – take your time to assess."
+            }
+        }
+    };
 
         staticResponses = new Dictionary<string, Action>(StringComparer.OrdinalIgnoreCase)
+    {
+        { "how are you", () => Respond("I'm just a bot, but I'm always here to help!") },
+        { "what is your purpose", () => Respond("I help you learn about cybersecurity and staying safe online.") },
+        { "safe browsing", () => Respond(
+            "Safe browsing helps protect you from online threats.\n\n" +
+            "- Use an updated browser with security features enabled.\n" +
+            "- Avoid downloading from suspicious sites.\n" +
+            "- Look for HTTPS before entering personal info.\n" +
+            "- Use a VPN on public Wi-Fi.\n" +
+            "- Keep antivirus software up to date.") }
+    };
+    
+
+
+    staticResponses = new Dictionary<string, Action>(StringComparer.OrdinalIgnoreCase)
         {
             { "how are you", () => Respond("I'm just a bot, but I'm always here to help!") },
             { "what is your purpose", () => Respond("I help you learn about cybersecurity and staying safe online.") },
@@ -109,10 +133,12 @@ public class Chatbot
         Console.WriteLine("III. password safety");
         Console.WriteLine("IV. phishing");
         Console.WriteLine("V. privacy");
-        Console.WriteLine("VI. safe browsing");
-        Console.WriteLine("VII. exit");
+        Console.WriteLine("VI. scam");
+        Console.WriteLine("VII. safe browsing");
+        Console.WriteLine("VIII. exit");
         Console.ResetColor();
     }
+
 
     private static void Respond(string message)
     {
