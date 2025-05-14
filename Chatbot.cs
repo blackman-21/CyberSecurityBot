@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 
 public class Chatbot
@@ -11,7 +12,7 @@ public class Chatbot
 
     public Chatbot()
     {
-        topicResponses = new Dictionary<string, List<string>>
+        topicResponses = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase)
         {
             { "phishing", new List<string>
                 {
@@ -40,7 +41,7 @@ public class Chatbot
             }
         };
 
-        staticResponses = new Dictionary<string, Action>
+        staticResponses = new Dictionary<string, Action>(StringComparer.OrdinalIgnoreCase)
         {
             { "how are you", () => Respond("I'm just a bot, but I'm always here to help!") },
             { "what is your purpose", () => Respond("I help you learn about cybersecurity and staying safe online.") },
@@ -69,7 +70,7 @@ public class Chatbot
             Console.ForegroundColor = ConsoleColor.Yellow;
             Console.Write($"\n{userName}: ");
             Console.ResetColor();
-            string input = Console.ReadLine()?.ToLower();
+            string input = Console.ReadLine()?.ToLower().Trim();
 
             if (string.IsNullOrWhiteSpace(input))
             {
@@ -83,7 +84,16 @@ public class Chatbot
                 break;
             }
 
+            // Special recall check
+            if (input.Contains("more") && !string.IsNullOrWhiteSpace(userInterest))
+            {
+                Respond($"Since you're interested in {userInterest}, here's more advice:");
+                ShowRandomTips(userInterest, 3);
+                continue;
+            }
+
             if (DetectSentiment(input)) continue;
+            if (DetectAndRespondToStatic(input)) continue;
             if (DetectAndRespondToTopic(input)) continue;
 
             Respond("I'm not sure I understand. Try asking about password safety, phishing, privacy, or safe browsing.");
@@ -104,14 +114,14 @@ public class Chatbot
         Console.ResetColor();
     }
 
-    private void Respond(string message)
+    private static void Respond(string message)
     {
         Console.ForegroundColor = ConsoleColor.Cyan;
         Console.Write("Chatbot: ");
         foreach (char c in message)
         {
             Console.Write(c);
-            Thread.Sleep(10);
+            Thread.Sleep(10); // Typing effect
         }
         Console.WriteLine();
         Console.ResetColor();
@@ -137,7 +147,7 @@ public class Chatbot
         return false;
     }
 
-    private bool DetectAndRespondToTopic(string input)
+    private bool DetectAndRespondToStatic(string input)
     {
         foreach (var entry in staticResponses)
         {
@@ -147,37 +157,40 @@ public class Chatbot
                 return true;
             }
         }
+        return false;
+    }
 
+    private bool DetectAndRespondToTopic(string input)
+    {
         foreach (var topic in topicResponses.Keys)
         {
             if (input.Contains(topic))
             {
+                userInterest = topic;
                 Respond($"Here's what you should know about {topic}:");
-
-                foreach (var tip in topicResponses[topic])
-                {
-                    Respond("- " + tip);
-                    Thread.Sleep(150);
-                }
-
-                if (string.IsNullOrEmpty(userInterest))
-                {
-                    userInterest = topic;
-                    Respond($"I'll remember that you're interested in {topic}, {userName}.");
-                }
-                else if (input.Contains("more"))
-                {
-                    Respond($"You previously mentioned an interest in {userInterest}. Here's more advice:");
-                    foreach (var tip in topicResponses[userInterest])
-                    {
-                        Respond("- " + tip);
-                    }
-                }
-
+                ShowRandomTips(topic, 3); // Show 3 tips only for brevity
+                Respond($"I'll remember that you're interested in {topic}, {userName}.");
                 return true;
             }
         }
-
         return false;
+    }
+
+    private void ShowRandomTips(string topic, int numberOfTips)
+    {
+        if (topicResponses.TryGetValue(topic, out var tips))
+        {
+            var rnd = new Random();
+            var selectedTips = tips.OrderBy(x => rnd.Next()).Take(numberOfTips);
+
+            foreach (var tip in selectedTips)
+            {
+                Respond("- " + tip);
+            }
+        }
+        else
+        {
+            Respond("I don’t have tips on that topic yet.");
+        }
     }
 }

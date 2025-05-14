@@ -7,7 +7,7 @@ class Program
 {
     static void Main()
     {
-        
+
 
         PlayVoiceGreeting();
         DisplayAsciiArt();
@@ -75,7 +75,7 @@ class Program
         return name;
     }
 
-    
+
 
     public static void DisplaySection(string title)
     {
